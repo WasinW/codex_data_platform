@@ -1,89 +1,52 @@
 # Codex Data Platform
 
-This repository contains an example setup for a GCP based data platform.
-It demonstrates how to deploy Spark jobs on Dataproc and orchestrate them
-with Airflow running on Kubernetes. Buckets are provisioned for scripts
-and data following the layout described in the blueprint documents.
+This repository provides a production-grade reference for building a data platform on **Google Cloud Platform**. It provisions infrastructure with Terraform, runs Apache Spark jobs on Dataproc, and orchestrates pipelines with Airflow on Kubernetes.
 
-## Structure
-
-- `scripts/fw` – Spark Scala framework and compiled jars
-- `scripts/airflow/dag` – Airflow DAGs
-- `scripts/airflow/config` – Job configuration files
-- `infrastructure/terraform` – Terraform scripts for GCP resources
-- `infrastructure/k8s` – Kubernetes manifests
-
-Update the Terraform variables with your GCP project before applying.
-
-## Building and Uploading the Spark Framework Jar
-
-1. From the `scripts/fw` directory run `sbt package` to compile the Scala
-   framework using the provided `build.sbt`.
-2. Copy the resulting jar from `scripts/fw/target/scala-2.12/` to
-   `scripts/fw/lib/output/framework.jar` and upload it to your GCS bucket:
-
-   ```bash
-   sbt package            # or: mvn package
-   ```
-2. Copy the generated jar to `scripts/fw/lib/output/framework.jar` and upload
-   it to the bucket path used by the Airflow DAG:
-
-   ```bash
-   gsutil cp target/scala-*/*.jar \
-     gs://ntt-test-data-bq-looker-scripts/fw/lib/output/framework.jar
-   ```
-3. Set the `FRAMEWORK_JAR` environment variable to this GCS path or update
-   `scripts/airflow/config/job_config.yaml` with the `jar_path`. The sample DAG
-   references this value when submitting the Dataproc job.
-
-## Terraform usage
-
-Install [Terraform](https://www.terraform.io/) version **1.0** or newer before
-running any formatting or apply commands. After editing the infrastructure
-files, you can format and initialize the working directory using:
-
-```bash
-terraform fmt
-terraform init
+```
+├── scripts
+│   ├── airflow
+│   │   ├── dag               # Airflow DAGs
+│   │   └── config            # YAML configs consumed by DAGs
+│   └── fw
+│       ├── build.sbt         # Spark/Scala build
+│       ├── build.sh          # build script producing lib/output/framework.jar
+│       └── src/main/scala    # framework and jobs
+├── infrastructure
+│   ├── terraform             # IaC for GCS, Dataproc, GKE, BigQuery
+│   │   └── modules           # reusable Terraform modules
+│   └── k8s                   # Kubernetes manifests and Dockerfile
+└── scripts/tools             # helper scripts for deployment and data
 ```
 
-Then apply the configuration with `terraform apply`.
+## Requirements
+- Terraform >= 1.0
+- Docker and `kubectl`
+- sbt for building Scala code
+- gcloud SDK authenticated to your project
 
-## Building a Custom Airflow Image
-
-A `Dockerfile` is included which extends `apache/airflow:2.7.0` and
-installs the Google Cloud SDK. Build the image and push it to your
-Artifact Registry or GCR before applying the Kubernetes manifests:
-
-```bash
-# build and tag the image
-docker build -t gcr.io/<your-project-id>/airflow-gcloud:2.7.0 .
-
-# push to Artifact Registry or GCR
-docker push gcr.io/<your-project-id>/airflow-gcloud:2.7.0
-```
-
-The deployment manifest in `infrastructure/k8s/airflow.yaml` references
-this image.
-=======
-When applying the configuration, provide the required variables:
-
-```bash
-terraform apply -var="project_id=<your-gcp-project>" \
-  -var="region=asia-southeast1"
-```
-
-## Deploying Airflow on GKE
-
-1. Authenticate `kubectl` against the newly created cluster:
-
+## Deployment
+1. **Build the Spark framework**
    ```bash
-   gcloud container clusters get-credentials airflow-gke \
-     --region asia-southeast1 --project <your-gcp-project>
+   ./scripts/fw/build.sh
    ```
-2. Apply the manifest that fetches DAGs and launches Airflow:
-
+2. **Sync scripts to GCS**
    ```bash
-   kubectl apply -f infrastructure/k8s/airflow.yaml
+   ./scripts/tools/sync_gcs.sh ntt-test-data-bq-looker-scripts
    ```
+3. **Deploy infrastructure and Airflow**
+   ```bash
+   ./scripts/tools/deploy.sh
+   ```
+
+An Airflow web service will be available in the `airflow` namespace. DAGs load configuration from `/opt/airflow/config` which is populated from the scripts bucket on startup.
+
+## Sample Data
+Generate sample parquet data for testing:
+```bash
+python scripts/tools/create_sample_data.py /tmp/sample
+```
+Upload to the raw layer bucket path as required by your config.
+
+## Contribution
+Pull requests are welcome. Please format Terraform with `terraform fmt` and keep code modular and documented.
 

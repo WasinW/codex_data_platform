@@ -1,7 +1,18 @@
-*.jar
-*.tfstate*
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Python cache
 __pycache__/
-.DS_Store
-# Build artifacts
-target/
+
+# Scala build
+scripts/fw/target/
+*.jar
+
+# Airflow logs
+logs/
+
+# IDE files
 .idea/
+.vscode/
