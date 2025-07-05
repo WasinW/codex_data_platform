@@ -1,3 +1,4 @@
 # Example job configuration
+jar_path: gs://<your-bucket>/fw/lib/output/framework.jar
 input_path: gs://ntt-test-data-bq-looker-data/dp_demo_data/raw/sample_db/sample_table
 output_path: gs://ntt-test-data-bq-looker-data/dp_demo_data/refined/sample_db/sample_table
