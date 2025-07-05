@@ -28,3 +28,16 @@ Update the Terraform variables with your GCP project before applying.
 3. Set the `FRAMEWORK_JAR` environment variable to the GCS path of the jar or
    update `scripts/airflow/config/job_config.yaml` with a `jar_path` entry. The
    sample DAG uses this value when submitting the Dataproc job.
+
+## Terraform usage
+
+Install [Terraform](https://www.terraform.io/) version **1.0** or newer before
+running any formatting or apply commands. After editing the infrastructure
+files, you can format and initialize the working directory using:
+
+```bash
+terraform fmt
+terraform init
+```
+
+Then apply the configuration with `terraform apply`.
