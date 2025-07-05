@@ -17,3 +17,7 @@ Place compiled framework JARs here.
 
 3. Run `sbt package` to produce `target/scala-2.12/codex-data-platform_2.12-0.1.jar`.
 4. Copy the resulting JAR into this directory so it can be uploaded to GCS.
+
+Place compiled framework jars here. The Airflow DAG expects a jar named
+`framework.jar` to be uploaded to the corresponding path in your GCS bucket
+(for example `gs://<your-bucket>/fw/lib/output/framework.jar`).
