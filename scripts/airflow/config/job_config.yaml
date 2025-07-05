@@ -1,0 +1,3 @@
+# Example job configuration
+input_path: gs://ntt-test-data-bq-looker-data/dp_demo_data/raw/sample_db/sample_table
+output_path: gs://ntt-test-data-bq-looker-data/dp_demo_data/refined/sample_db/sample_table
