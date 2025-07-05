@@ -17,10 +17,10 @@ Update the Terraform variables with your GCP project before applying.
 
 ## Building and Uploading the Spark Framework Jar
 
-1. Compile the Scala code in `scripts/fw/scripts` using your preferred build
-   tool (for example `sbt package` or `mvn package`).
-2. Copy the resulting jar to `scripts/fw/lib/output/` and upload it to your
-   GCS bucket:
+1. From the `scripts/fw` directory run `sbt package` to compile the Scala
+   framework using the provided `build.sbt`.
+2. Copy the resulting jar from `scripts/fw/target/scala-2.12/` to
+   `scripts/fw/lib/output/framework.jar` and upload it to your GCS bucket:
 
    ```bash
    gsutil cp path/to/framework.jar gs://<your-bucket>/fw/lib/output/framework.jar
