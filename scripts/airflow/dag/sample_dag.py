@@ -1,3 +1,10 @@
+"""Sample DAG submitting a Spark job to Dataproc.
+
+The path to the compiled jar can be provided via the FRAMEWORK_JAR
+environment variable or the ``jar_path`` field inside the YAML
+configuration file.
+"""
+
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.utils.task_group import TaskGroup
