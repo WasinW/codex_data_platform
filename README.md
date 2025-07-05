@@ -41,3 +41,20 @@ terraform init
 ```
 
 Then apply the configuration with `terraform apply`.
+
+## Building a Custom Airflow Image
+
+A `Dockerfile` is included which extends `apache/airflow:2.7.0` and
+installs the Google Cloud SDK. Build the image and push it to your
+Artifact Registry or GCR before applying the Kubernetes manifests:
+
+```bash
+# build and tag the image
+docker build -t gcr.io/<your-project-id>/airflow-gcloud:2.7.0 .
+
+# push to Artifact Registry or GCR
+docker push gcr.io/<your-project-id>/airflow-gcloud:2.7.0
+```
+
+The deployment manifest in `infrastructure/k8s/airflow.yaml` references
+this image.
