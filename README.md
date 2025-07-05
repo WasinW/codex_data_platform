@@ -17,17 +17,22 @@ Update the Terraform variables with your GCP project before applying.
 
 ## Building and Uploading the Spark Framework Jar
 
-1. Compile the Scala code in `scripts/fw/scripts` using your preferred build
-   tool (for example `sbt package` or `mvn package`).
-2. Copy the resulting jar to `scripts/fw/lib/output/` and upload it to your
-   GCS bucket:
+1. From the `scripts/fw/scripts` directory build the Scala sources using
+   [sbt](https://www.scala-sbt.org/) or Maven:
 
    ```bash
-   gsutil cp path/to/framework.jar gs://<your-bucket>/fw/lib/output/framework.jar
+   sbt package            # or: mvn package
    ```
-3. Set the `FRAMEWORK_JAR` environment variable to the GCS path of the jar or
-   update `scripts/airflow/config/job_config.yaml` with a `jar_path` entry. The
-   sample DAG uses this value when submitting the Dataproc job.
+2. Copy the generated jar to `scripts/fw/lib/output/framework.jar` and upload
+   it to the bucket path used by the Airflow DAG:
+
+   ```bash
+   gsutil cp target/scala-*/*.jar \
+     gs://ntt-test-data-bq-looker-scripts/fw/lib/output/framework.jar
+   ```
+3. Set the `FRAMEWORK_JAR` environment variable to this GCS path or update
+   `scripts/airflow/config/job_config.yaml` with the `jar_path`. The sample DAG
+   references this value when submitting the Dataproc job.
 
 ## Terraform usage
 
@@ -58,3 +63,25 @@ docker push gcr.io/<your-project-id>/airflow-gcloud:2.7.0
 
 The deployment manifest in `infrastructure/k8s/airflow.yaml` references
 this image.
+=======
+When applying the configuration, provide the required variables:
+
+```bash
+terraform apply -var="project_id=<your-gcp-project>" \
+  -var="region=asia-southeast1"
+```
+
+## Deploying Airflow on GKE
+
+1. Authenticate `kubectl` against the newly created cluster:
+
+   ```bash
+   gcloud container clusters get-credentials airflow-gke \
+     --region asia-southeast1 --project <your-gcp-project>
+   ```
+2. Apply the manifest that fetches DAGs and launches Airflow:
+
+   ```bash
+   kubectl apply -f infrastructure/k8s/airflow.yaml
+   ```
+
