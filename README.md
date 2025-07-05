@@ -14,3 +14,16 @@ and data following the layout described in the blueprint documents.
 - `infrastructure/k8s` – Kubernetes manifests
 
 Update the Terraform variables with your GCP project before applying.
+
+## Terraform usage
+
+Install [Terraform](https://www.terraform.io/) version **1.0** or newer before
+running any formatting or apply commands. After editing the infrastructure
+files, you can format and initialize the working directory using:
+
+```bash
+terraform fmt
+terraform init
+```
+
+Then apply the configuration with `terraform apply`.
