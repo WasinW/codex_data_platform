@@ -23,11 +23,18 @@ Update the Terraform variables with your GCP project before applying.
    `scripts/fw/lib/output/framework.jar` and upload it to your GCS bucket:
 
    ```bash
-   gsutil cp path/to/framework.jar gs://<your-bucket>/fw/lib/output/framework.jar
+   sbt package            # or: mvn package
    ```
-3. Set the `FRAMEWORK_JAR` environment variable to the GCS path of the jar or
-   update `scripts/airflow/config/job_config.yaml` with a `jar_path` entry. The
-   sample DAG uses this value when submitting the Dataproc job.
+2. Copy the generated jar to `scripts/fw/lib/output/framework.jar` and upload
+   it to the bucket path used by the Airflow DAG:
+
+   ```bash
+   gsutil cp target/scala-*/*.jar \
+     gs://ntt-test-data-bq-looker-scripts/fw/lib/output/framework.jar
+   ```
+3. Set the `FRAMEWORK_JAR` environment variable to this GCS path or update
+   `scripts/airflow/config/job_config.yaml` with the `jar_path`. The sample DAG
+   references this value when submitting the Dataproc job.
 
 ## Terraform usage
 
@@ -41,3 +48,42 @@ terraform init
 ```
 
 Then apply the configuration with `terraform apply`.
+
+## Building a Custom Airflow Image
+
+A `Dockerfile` is included which extends `apache/airflow:2.7.0` and
+installs the Google Cloud SDK. Build the image and push it to your
+Artifact Registry or GCR before applying the Kubernetes manifests:
+
+```bash
+# build and tag the image
+docker build -t gcr.io/<your-project-id>/airflow-gcloud:2.7.0 .
+
+# push to Artifact Registry or GCR
+docker push gcr.io/<your-project-id>/airflow-gcloud:2.7.0
+```
+
+The deployment manifest in `infrastructure/k8s/airflow.yaml` references
+this image.
+=======
+When applying the configuration, provide the required variables:
+
+```bash
+terraform apply -var="project_id=<your-gcp-project>" \
+  -var="region=asia-southeast1"
+```
+
+## Deploying Airflow on GKE
+
+1. Authenticate `kubectl` against the newly created cluster:
+
+   ```bash
+   gcloud container clusters get-credentials airflow-gke \
+     --region asia-southeast1 --project <your-gcp-project>
+   ```
+2. Apply the manifest that fetches DAGs and launches Airflow:
+
+   ```bash
+   kubectl apply -f infrastructure/k8s/airflow.yaml
+   ```
+
