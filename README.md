@@ -1,16 +1,52 @@
 # Codex Data Platform
 
-This repository contains an example setup for a GCP based data platform.
-It demonstrates how to deploy Spark jobs on Dataproc and orchestrate them
-with Airflow running on Kubernetes. Buckets are provisioned for scripts
-and data following the layout described in the blueprint documents.
+This repository provides a production-grade reference for building a data platform on **Google Cloud Platform**. It provisions infrastructure with Terraform, runs Apache Spark jobs on Dataproc, and orchestrates pipelines with Airflow on Kubernetes.
 
-## Structure
+```
+├── scripts
+│   ├── airflow
+│   │   ├── dag               # Airflow DAGs
+│   │   └── config            # YAML configs consumed by DAGs
+│   └── fw
+│       ├── build.sbt         # Spark/Scala build
+│       ├── build.sh          # build script producing lib/output/framework.jar
+│       └── src/main/scala    # framework and jobs
+├── infrastructure
+│   ├── terraform             # IaC for GCS, Dataproc, GKE, BigQuery
+│   │   └── modules           # reusable Terraform modules
+│   └── k8s                   # Kubernetes manifests and Dockerfile
+└── scripts/tools             # helper scripts for deployment and data
+```
 
-- `scripts/fw` – Spark Scala framework and compiled jars
-- `scripts/airflow/dag` – Airflow DAGs
-- `scripts/airflow/config` – Job configuration files
-- `infrastructure/terraform` – Terraform scripts for GCP resources
-- `infrastructure/k8s` – Kubernetes manifests
+## Requirements
+- Terraform >= 1.0
+- Docker and `kubectl`
+- sbt for building Scala code
+- gcloud SDK authenticated to your project
 
-Update the Terraform variables with your GCP project before applying.
+## Deployment
+1. **Build the Spark framework**
+   ```bash
+   ./scripts/fw/build.sh
+   ```
+2. **Sync scripts to GCS**
+   ```bash
+   ./scripts/tools/sync_gcs.sh ntt-test-data-bq-looker-scripts
+   ```
+3. **Deploy infrastructure and Airflow**
+   ```bash
+   ./scripts/tools/deploy.sh
+   ```
+
+An Airflow web service will be available in the `airflow` namespace. DAGs load configuration from `/opt/airflow/config` which is populated from the scripts bucket on startup.
+
+## Sample Data
+Generate sample parquet data for testing:
+```bash
+python scripts/tools/create_sample_data.py /tmp/sample
+```
+Upload to the raw layer bucket path as required by your config.
+
+## Contribution
+Pull requests are welcome. Please format Terraform with `terraform fmt` and keep code modular and documented.
+

@@ -1,0 +1,18 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Python cache
+__pycache__/
+
+# Scala build
+scripts/fw/target/
+*.jar
+
+# Airflow logs
+logs/
+
+# IDE files
+.idea/
+.vscode/

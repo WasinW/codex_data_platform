@@ -1,15 +1,15 @@
 output "scripts_bucket" {
-  value = google_storage_bucket.scripts.url
+  value = module.gcs.scripts_bucket
 }
 
 output "data_bucket" {
-  value = google_storage_bucket.data.url
+  value = module.gcs.data_bucket
 }
 
 output "dataproc_cluster" {
-  value = google_dataproc_cluster.spark.cluster_name
+  value = module.dataproc.cluster_name
 }
 
 output "gke_cluster" {
-  value = google_container_cluster.gke.name
+  value = module.gke.cluster_name
 }

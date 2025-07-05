@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: airflow
-          image: apache/airflow:2.7.0
+          image: airflow-gcloud:latest
           env:
             - name: AIRFLOW__CORE__LOAD_EXAMPLES
               value: "false"
@@ -29,6 +29,14 @@ spec:
               mountPath: /opt/airflow/dags
             - name: config
               mountPath: /opt/airflow/config
+        - name: fluentd
+          image: fluent/fluentd-kubernetes-daemonset:v1.16-debian-airflow
+          resources:
+            limits:
+              memory: "200Mi"
+          volumeMounts:
+            - name: logs
+              mountPath: /fluentd/log
       initContainers:
         - name: fetch-dags
           image: google/cloud-sdk:slim
@@ -44,6 +52,8 @@ spec:
         - name: dags
           emptyDir: {}
         - name: config
+          emptyDir: {}
+        - name: logs
           emptyDir: {}
 ---
 apiVersion: v1
