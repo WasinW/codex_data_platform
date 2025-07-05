@@ -13,13 +13,15 @@ import yaml
 
 CONFIG_FILE = os.environ.get(
     "JOB_CONFIG_FILE",
-    os.path.join(os.path.dirname(__file__), "../config/job_config.yaml"),
+    "/opt/airflow/config/job_config.yaml",
 )
 
 with open(CONFIG_FILE) as cfg:
     config = yaml.safe_load(cfg)
 
 JAR_PATH = os.environ.get("FRAMEWORK_JAR", config.get("jar_path"))
+INPUT_PATH = config.get("input_path")
+OUTPUT_PATH = config.get("output_path")
 
 with DAG(
     dag_id="sample_spark_job",
@@ -29,5 +31,11 @@ with DAG(
 ) as dag:
     run_job = BashOperator(
         task_id="run_spark_job",
-        bash_command=f"gcloud dataproc jobs submit spark --cluster=spark-cluster --jars {JAR_PATH} --class SimpleJob gs://ntt-test-data-bq-looker-scripts/fw/scripts/SimpleJob.scala",
+        bash_command=(
+            "gcloud dataproc jobs submit spark --cluster=spark-cluster "
+            f"--jars {JAR_PATH} --class SimpleJob "
+            "gs://ntt-test-data-bq-looker-scripts/fw/scripts/SimpleJob.scala "
+            "-- {{ params.input_path }} {{ params.output_path }}"
+        ),
+        params={"input_path": INPUT_PATH, "output_path": OUTPUT_PATH},
     )
